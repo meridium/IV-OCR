@@ -17,9 +17,8 @@ namespace OCR_App
         static void Main(string[] args) {
 
             // Todo: extract to config
-            var sourceFile = @"D:\GitHub\IV-OCR\images\source.jpg";
 
-            var resultString = "";
+            var sourceFile = Path.Combine(Path.GetTempPath(), "source.jpg");
             
             var vaultId = 520;  // fedex vault on my local ImageVault instance
 
@@ -76,7 +75,7 @@ namespace OCR_App
         private static string GetText(string source) {
             var result = "";
 
-            const string targetFile = @"D:\GitHub\IV-OCR\images\temp_out.txt";
+            string targetFile = Path.Combine(Path.GetTempPath(), "temp_out.txt");
             const string teserrectPath = @"D:\Tesseract-OCR\tesseract.exe";
 
             for (int i = 0; i < 2; i++ )
