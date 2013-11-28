@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using ImageVault.Client;
 using ImageVault.Client.Query;
 using ImageVault.Common.Data;
@@ -114,7 +115,9 @@ namespace OCR_App
                 // read the result from file
                 using (var f = File.OpenText(targetFile + ".txt"))
                 {
-                    result+=f.ReadToEnd();
+                    var text = f.ReadToEnd();
+                    text = new Regex("[^a-z0-9 - åäö]",RegexOptions.IgnoreCase).Replace(text, " ");
+                    result += text;
                 }
             }
 
