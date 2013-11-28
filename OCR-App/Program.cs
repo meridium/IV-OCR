@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
 using ImageVault.Client;
 using ImageVault.Client.Query;
 using ImageVault.Common.Data;
+using ImageVault.Common.Data.Query;
+using ImageVault.Common.Services;
 
 namespace OCR_App
 {
@@ -26,26 +28,51 @@ namespace OCR_App
 
             var jpegWebFormat = new ImageFormat {MediaFormatOutputType = MediaFormatOutputTypes.Jpeg};
 
-            var mediaList = client.Query<MediaItem>().Where(m => m.VaultId == vaultId).ToList();
+            var mediaList = client.Query<MediaItem>().Include(m => m.Metadata).Where(m => m.VaultId == vaultId).ToList();
             var ids = mediaList.Select(m => m.Id).ToList();
 
             var webMedias = client.Query<WebMedia>().Where(wm => ids.Contains(wm.Id)).UseFormat(jpegWebFormat).ToList();
 
+            // get metadatadefinition id for OCR metadata
+            var metaChannel = client.CreateChannel<IMetadataDefinitionService>();
+
+            var metadataDefinitionId = metaChannel.Find(new MetadataDefinitionQuery {
+                Filter = new MetadataDefinitionFilter {
+                    MetadataDefinitionType = MetadataDefinitionTypes.User
+
+                }
+            }).Where(x => x.Name == "ocr").Select(m => m.Id).SingleOrDefault();
+
+
             foreach (var webMedia in webMedias) {
+                Console.WriteLine("Finding text in image " + webMedia.Name + "...");
                 var webclient = new WebClient();
 
                 webclient.DownloadFile(webMedia.Url, sourceFile);
 
                 var text = GetText(sourceFile);
 
-                Console.WriteLine("Text for image " + webMedia.Url + ": " + text);
+                AddMetadataToMedia(mediaList.SingleOrDefault(mi => mi.Id == webMedia.Id), text, metadataDefinitionId);
 
-                Console.ReadLine();
+                Console.WriteLine("Done.");
 
             }
 
+            SaveMetadata(mediaList);
+
+        }
+        private static void SaveMetadata(List<MediaItem> mediaList) {
+            var client = ClientFactory.GetSdkClient();
+            var channel = client.CreateChannel<IMediaService>();
+
+            channel.Save(mediaList, MediaServiceSaveOptions.Metadata);
         }
 
+        private static void AddMetadataToMedia(MediaItem media, string text, int metadataDefinitionId) {
+
+            media.Metadata.Add(new MetadataLongString {LongStringValue = text, MetadataDefinitionId = metadataDefinitionId});
+           
+        }
         private static string GetText(string source) {
             var result = "";
 
