@@ -1,36 +1,46 @@
 ﻿using System;
-using System.Drawing;
-using tesseract;
+using System.Diagnostics;
+using System.IO;
 
 namespace OCR_App
 {
     class Program
     {
         static void Main(string[] args) {
-            var processor = new TesseractProcessor();
 
-            var succeed = processor.Init(@"D:\Tesseract-OCR\tessdata\", "eng", 3); // TesseractEngineMode: DEFAULT
+            var sourceFile = @"D:\GitHub\IV-OCR\images\Golden_Globe_text_logo.png";
+            var targetFile = @"D:\GitHub\IV-OCR\images\temp_out.txt";
+            var resultString = "";
 
-            if (succeed) {
+            var p = new ProcessStartInfo();
 
-                processor.SetVariable("tessedit_pageseg_mode", "2"); // TesseractPageSegMode: PSM_SINGLE_LINE
+            p.CreateNoWindow = true;
+            p.WindowStyle = ProcessWindowStyle.Hidden;
 
-                using (var image = Image.FromFile(@"D:\GitHub\IV-OCR\images\pdtext_03.gif"))
-                {
-                    processor.Clear();
-                    processor.ClearAdaptiveClassifier();
+            p.FileName = @"D:\Tesseract-OCR\tesseract.exe";
 
-                    var result = processor.Apply(image);
+            p.Arguments = string.Format("\"{0}\" \"{1}\" -l eng -psm 6", sourceFile, targetFile);
 
-                    Console.WriteLine("Result: " + result);
-
-                    Console.WriteLine("Exit...");
-
+            using (var ps = Process.Start(p)) {
+                // wait for command to finish
+                var result = ps.ExitCode;
+                if (result != 0) {
+                    return;
                 }
-
-
+                ps.WaitForExit();
             }
 
+            // read the result from file
+            using (var f = File.OpenText(targetFile)) {
+                resultString = f.ReadToEnd();
+            }
+
+            //File.Delete(sourceFile);
+            File.Delete(targetFile);
+
+            Console.WriteLine("Result: " + resultString);
+
+            Console.ReadLine();
         }
     }
 }
