@@ -96,7 +96,7 @@ namespace OCR_App
             string targetFile = Path.Combine(Path.GetTempPath(), "temp_out.txt");
             const string teserrectPath = @"D:\Tesseract-OCR\tesseract.exe";
 
-            for (int i = 0; i < 2; i++ )
+            for (int i = 1; i >= 0; i-- )
             {
                 var process = new Process()
                 {
@@ -117,6 +117,8 @@ namespace OCR_App
                 {
                     var text = f.ReadToEnd();
                     text = new Regex("[^a-z0-9 - åäö]",RegexOptions.IgnoreCase).Replace(text, " ");
+                    text = new Regex(@"\s+\w{1,2}\s+", RegexOptions.IgnoreCase).Replace(text, " ");
+                    text = new Regex(@"\s{2,}").Replace(text, " ");
                     result += text;
                 }
             }
