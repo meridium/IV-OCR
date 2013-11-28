@@ -12,14 +12,12 @@ For more information email: info@lennybacon.com
 12/27/04 Enhancements by Steven Fowler (steven_m_fowler@yahoo.com)
 =======================================================================*/
 
-using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
-using System.Web;
 
-namespace StaticDust
+namespace OCR_App
 {
 	/// <summary>
 	/// Summary description for image2html.

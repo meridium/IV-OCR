@@ -26,11 +26,13 @@ namespace OCR_App
             var client = ClientFactory.GetSdkClient();
 
             var jpegWebFormat = new ImageFormat {MediaFormatOutputType = MediaFormatOutputTypes.Jpeg};
+            var asciiFormat = new ImageFormat {Width = 300, KeepAspectRatio = true, MediaFormatOutputType = MediaFormatOutputTypes.Jpeg};
 
             var mediaList = client.Query<MediaItem>().Include(m => m.Metadata).Where(m => m.VaultId == vaultId).ToList();
             var ids = mediaList.Select(m => m.Id).ToList();
 
             var webMedias = client.Query<WebMedia>().Where(wm => ids.Contains(wm.Id)).UseFormat(jpegWebFormat).ToList();
+            var asciiMedias = client.Query<WebMedia>().Where(wm => ids.Contains(wm.Id)).UseFormat(asciiFormat).ToList();
 
             // get metadatadefinition id for OCR metadata
             var metaChannel = client.CreateChannel<IMetadataDefinitionService>();
@@ -42,6 +44,15 @@ namespace OCR_App
                 }
             }).Where(x => x.Name == "ocr").Select(m => m.Id).SingleOrDefault();
 
+            var asciiMetadataDefinitionId = metaChannel.Find(new MetadataDefinitionQuery
+            {
+                Filter = new MetadataDefinitionFilter
+                {
+                    MetadataDefinitionType = MetadataDefinitionTypes.User
+
+                }
+            }).Where(x => x.Name == "ascii").Select(m => m.Id).SingleOrDefault();
+
 
             foreach (var webMedia in webMedias) {
                 Console.WriteLine("Finding text in image " + webMedia.Name + "...");
@@ -51,7 +62,12 @@ namespace OCR_App
 
                 var text = GetText(sourceFile);
 
-                AddMetadataToMedia(mediaList.SingleOrDefault(mi => mi.Id == webMedia.Id), text, metadataDefinitionId);
+                var stream = new MemoryStream(webclient.DownloadData(asciiMedias.SingleOrDefault(m => m.Id == webMedia.Id).Url));
+                var ascii = AsciiArt.ConvertImage(stream, "2", null);
+
+                AddMetadataToMedia(mediaList.SingleOrDefault(mi => mi.Id == webMedia.Id), text, ascii, metadataDefinitionId, asciiMetadataDefinitionId);
+
+                Console.WriteLine(ascii);
 
                 Console.WriteLine("Done.");
 
@@ -67,9 +83,10 @@ namespace OCR_App
             channel.Save(mediaList, MediaServiceSaveOptions.Metadata);
         }
 
-        private static void AddMetadataToMedia(MediaItem media, string text, int metadataDefinitionId) {
+        private static void AddMetadataToMedia(MediaItem media, string text, string ascii, int metadataDefinitionId, int asciiMetadataDefinitionId) {
 
-            media.Metadata.Add(new MetadataLongString {LongStringValue = text, MetadataDefinitionId = metadataDefinitionId});
+            media.Metadata.Add(new MetadataLongString { LongStringValue = text, MetadataDefinitionId = metadataDefinitionId });
+            media.Metadata.Add(new MetadataLongString { LongStringValue = ascii, MetadataDefinitionId = asciiMetadataDefinitionId });
            
         }
         private static string GetText(string source) {
