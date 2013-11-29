@@ -131,9 +131,9 @@ namespace OCR_App
                 using (var f = File.OpenText(targetFile + ".txt"))
                 {
                     var text = f.ReadToEnd();
-                    text = new Regex("[^a-z0-9 - åäö]",RegexOptions.IgnoreCase).Replace(text, " ");
-                    text = new Regex(@"\s+\w{1,2}\s+", RegexOptions.IgnoreCase).Replace(text, " ");
-                    text = new Regex(@"\s{2,}").Replace(text, " ");
+                    text = new Regex("[^a-z0-9 - åäö]", RegexOptions.IgnoreCase).Replace(text, " ");
+                    text = new Regex(@"\b\w{1,2}\b", RegexOptions.IgnoreCase).Replace(text, " ");
+                    text = new Regex(@"\s+").Replace(text, " ");
                     result += text;
                 }
             }
