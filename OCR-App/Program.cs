@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,15 +14,30 @@ using ImageVault.Common.Services;
 
 namespace OCR_App
 {
-    class Program
-    {
+    class Program {
+        private static string _tesseractPath;
+        private static int _vaultId;
+        private static string _ocrMetadataName;
+        private static string _asciiMetadataName;
+
         static void Main(string[] args) {
 
-            // Todo: extract to config
+            var sourceFile = "";
+            try {
+                sourceFile = Path.Combine(Path.GetTempPath(), "source.jpg");
+                _vaultId = Int32.Parse(ConfigurationManager.AppSettings["VaultId"]);
+                _tesseractPath = ConfigurationManager.AppSettings["TesseractPath"];
+                _ocrMetadataName = ConfigurationManager.AppSettings["OcrMetadataName"];
+                _asciiMetadataName = ConfigurationManager.AppSettings["AsciiMetadataName"];
 
-            var sourceFile = Path.Combine(Path.GetTempPath(), "source.jpg");
-            
-            var vaultId = 520;  // fedex vault on my local ImageVault instance
+                if (string.IsNullOrEmpty(_tesseractPath) || string.IsNullOrEmpty(_ocrMetadataName) || string.IsNullOrEmpty(_asciiMetadataName)) {
+                    throw new Exception("Configuration is missing/invalid");
+                }
+
+            } catch (Exception e) {
+                Console.WriteLine("Error reading configuration: " + e.Message);
+                return;
+            }
 
             // get images from vault and loop through
             var client = ClientFactory.GetSdkClient();
@@ -29,7 +45,7 @@ namespace OCR_App
             var jpegWebFormat = new ImageFormat {MediaFormatOutputType = MediaFormatOutputTypes.Jpeg};
             var asciiFormat = new ImageFormat {Width = 300, KeepAspectRatio = true, MediaFormatOutputType = MediaFormatOutputTypes.Jpeg};
 
-            var mediaList = client.Query<MediaItem>().Include(m => m.Metadata).Where(m => m.VaultId == vaultId).ToList();
+            var mediaList = client.Query<MediaItem>().Include(m => m.Metadata).Where(m => m.VaultId == _vaultId).ToList();
             var ids = mediaList.Select(m => m.Id).ToList();
 
             var webMedias = client.Query<WebMedia>().Where(wm => ids.Contains(wm.Id)).UseFormat(jpegWebFormat).ToList();
@@ -43,7 +59,7 @@ namespace OCR_App
                     MetadataDefinitionType = MetadataDefinitionTypes.User
 
                 }
-            }).Where(x => x.Name == "ocr").Select(m => m.Id).SingleOrDefault();
+            }).Where(x => x.Name == _ocrMetadataName).Select(m => m.Id).SingleOrDefault();
 
             var asciiMetadataDefinitionId = metaChannel.Find(new MetadataDefinitionQuery
             {
@@ -52,7 +68,7 @@ namespace OCR_App
                     MetadataDefinitionType = MetadataDefinitionTypes.User
 
                 }
-            }).Where(x => x.Name == "ascii").Select(m => m.Id).SingleOrDefault();
+            }).Where(x => x.Name == _asciiMetadataName).Select(m => m.Id).SingleOrDefault();
 
 
             foreach (var webMedia in webMedias) {
@@ -93,16 +109,15 @@ namespace OCR_App
         private static string GetText(string source) {
             var result = "";
 
-            string targetFile = Path.Combine(Path.GetTempPath(), "temp_out.txt");
-            const string teserrectPath = @"D:\Tesseract-OCR\tesseract.exe";
+            var targetFile = Path.Combine(Path.GetTempPath(), "temp_out.txt");
 
-            for (int i = 1; i >= 0; i-- )
+            for (var i = 1; i >= 0; i-- )
             {
                 var process = new Process()
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = teserrectPath,
+                        FileName = _tesseractPath,
                         Arguments = string.Format("\"{0}\" \"{1}\" -l eng -psm {2}", source, targetFile, 5 * i + 1),
                         UseShellExecute = true,
                         CreateNoWindow = true,
