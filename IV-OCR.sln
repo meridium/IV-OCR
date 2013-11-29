@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OCR-App", "OCR-App\OCR-App.csproj", "{42AF3797-75D1-49B6-8567-218543134D95}"
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OCRAnalyzer", "OCR-App\OCRAnalyzer.csproj", "{42AF3797-75D1-49B6-8567-218543134D95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OCRConsole", "OCRConsole\OCRConsole.csproj", "{23E46758-FCDE-4A5A-BFAD-361C4556904E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +17,10 @@ Global
 		{42AF3797-75D1-49B6-8567-218543134D95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42AF3797-75D1-49B6-8567-218543134D95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42AF3797-75D1-49B6-8567-218543134D95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23E46758-FCDE-4A5A-BFAD-361C4556904E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23E46758-FCDE-4A5A-BFAD-361C4556904E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23E46758-FCDE-4A5A-BFAD-361C4556904E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23E46758-FCDE-4A5A-BFAD-361C4556904E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

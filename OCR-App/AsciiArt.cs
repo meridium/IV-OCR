@@ -17,7 +17,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 
-namespace OCR_App
+namespace OCRAnalyzer
 {
 	/// <summary>
 	/// Summary description for image2html.
