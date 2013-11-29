@@ -90,7 +90,9 @@ namespace OCR_App
 
             }
 
-            SaveMetadata(mediaList);
+            if (mediaList.Count > 0) {
+                SaveMetadata(mediaList);
+            }
 
         }
         private static void SaveMetadata(List<MediaItem> mediaList) {
